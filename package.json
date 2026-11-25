@@ -1,6 +1,6 @@
 {
   "name": "iyric-phoneticer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -9,9 +9,11 @@
   },
   "scripts": {
     "dev": "vite",
+    "prebuild": "npm run version:check",
     "build": "vite build --base ./",
     "preview": "vite preview",
     "test": "node --test",
+    "version:check": "node scripts/check-version.js",
     "validate-lyrics": "node scripts/validate-lyrics.js"
   },
   "dependencies": {

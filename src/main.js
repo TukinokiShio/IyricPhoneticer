@@ -1,6 +1,7 @@
 import './style.css';
 import { parseBlob, selectCover } from 'music-metadata';
 import { activeLineIndex, lineSeekMs, parseLyricPack } from './lyric-pack.js';
+import { lyricEmphasis, lyricTransitionMs } from './lyric-presentation.js';
 
 const get = (id) => document.getElementById(id);
 const audio = get('player');
@@ -40,6 +41,7 @@ const exportProgress = get('export-progress');
 const exportPercent = get('export-percent');
 const status = get('status');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+lyricList.style.setProperty('--lyric-transition-ms', `${lyricTransitionMs}ms`);
 
 const offsetStepMs = 500;
 const imageTypes = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
@@ -165,6 +167,18 @@ function centerCurrent(smooth = true) {
   });
 }
 
+function updateLyricEmphasis(index) {
+  lyricButtons[activeIndex]?.removeAttribute('aria-current');
+  activeIndex = index;
+  lyricButtons[activeIndex]?.setAttribute('aria-current', 'true');
+  for (const [rowIndex, button] of lyricButtons.entries()) {
+    const distance = activeIndex < 0 ? rowIndex + 1 : Math.abs(rowIndex - activeIndex);
+    const { opacity, blurPx } = lyricEmphasis(distance);
+    button.style.setProperty('--lyric-opacity', String(opacity));
+    button.style.setProperty('--lyric-blur', `${blurPx}px`);
+  }
+}
+
 function syncTimeline() {
   const end = durationMs();
   const current = Math.max(0, Math.round(audio.currentTime * 1000));
@@ -179,9 +193,7 @@ function syncTimeline() {
   if (!pack) return;
   const nextIndex = activeLineIndex(pack.lines, current, offsetMs);
   if (nextIndex === activeIndex) return;
-  lyricButtons[activeIndex]?.removeAttribute('aria-current');
-  activeIndex = nextIndex;
-  lyricButtons[activeIndex]?.setAttribute('aria-current', 'true');
+  updateLyricEmphasis(nextIndex);
   if (following) centerCurrent();
 }
 
@@ -254,7 +266,6 @@ function renderLyrics() {
   readingButton.textContent = !pack || /^ja(?:-|$)/i.test(pack.language) ? '假名' : '读音';
   readingButton.setAttribute('aria-pressed', String(mode === 'reading'));
   romanizationButton.setAttribute('aria-pressed', String(mode === 'romanization'));
-  activeIndex = -1;
   lyricButtons = [];
   const rows = document.createDocumentFragment();
   for (const line of pack?.lines ?? []) {
@@ -264,10 +275,12 @@ function renderLyrics() {
     button.type = 'button';
     button.dataset.startMs = String(line.startMs);
     button.addEventListener('click', () => activateLine(line));
+    const content = document.createElement('span');
+    content.className = 'lyric-content';
     if (mode === 'romanization' && line.romanization) {
-      appendText(button, 'lyric-reading', line.romanization);
+      appendText(content, 'lyric-reading', line.romanization);
     }
-    const original = appendText(button, 'lyric-original', '', pack.language);
+    const original = appendText(content, 'lyric-original', '', pack.language);
     for (const segment of line.segments) {
       if (mode === 'reading' && segment.reading) {
         const ruby = document.createElement('ruby');
@@ -279,11 +292,13 @@ function renderLyrics() {
         original.append(document.createTextNode(segment.text));
       }
     }
-    if (line.translation) appendText(button, 'lyric-translation', line.translation, pack.translationLanguage);
+    if (line.translation) appendText(content, 'lyric-translation', line.translation, pack.translationLanguage);
+    button.append(content);
     row.append(button);
     rows.append(row);
     lyricButtons.push(button);
   }
+  updateLyricEmphasis(pack ? activeLineIndex(pack.lines, Math.round(audio.currentTime * 1000), offsetMs) : -1);
   lyricList.replaceChildren(rows);
   updateControls();
   syncTimeline();

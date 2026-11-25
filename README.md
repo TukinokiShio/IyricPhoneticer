@@ -42,6 +42,17 @@ npm run preview
 
 `npm run build` 生成静态文件到 `dist/`。
 
+## 版本管理
+
+每次发布修复或功能更新时升级 [SemVer](https://semver.org/lang/zh-CN/) 版本。兼容的修复、重构和界面调整升级 PATCH，兼容的新功能升级 MINOR，不兼容的公开接口变化升级 MAJOR。
+
+```sh
+npm version patch --no-git-tag-version
+npm run build
+```
+
+按改动类型将 `patch` 换成 `minor` 或 `major`。npm 同时更新 `package.json` 和 `package-lock.json`。构建前自动校验两者一致，页面标题旁的版本号从 `package.json` 注入。发布前打开构建后的页面核对显示版本。
+
 ## 许可
 
 项目原创代码、Skill 和演示素材采用 [MIT](LICENSE)。Mediabunny 1.66.4 保留 [MPL-2.0](https://www.mozilla.org/en-US/MPL/2.0/)。对应的依赖源码可从 [v1.66.4 源码与发布页](https://github.com/Vanilagy/mediabunny/releases/tag/v1.66.4) 取得。Vite 和 music-metadata 各自采用 MIT。

@@ -1,10 +1,11 @@
 import { activeLineIndex } from './lyric-pack.js';
+import { lyricEmphasis, lyricTransitionMs } from './lyric-presentation.js';
 
 const LYRIC_FONTS = '"Segoe UI", "Yu Gothic", Meiryo, "Microsoft YaHei UI", "Malgun Gothic", sans-serif';
 const WORDS = new Intl.Segmenter(undefined, { granularity: 'word' });
 const GRAPHEMES = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
-const SCROLL_MS = 240;
 const ROW_GAP = 34;
+const LAYER_PADDING = 12;
 const READING_COLOR = '#ffe0b7';
 const ORIGINAL_COLOR = '#fff9ee';
 const TRANSLATION_COLOR = '#e5e3ef';
@@ -19,45 +20,62 @@ export function createVideoRenderer(canvas, job, image) {
   const top = 144;
   const bottom = height - 32;
   const stageCenter = (top + bottom) / 2;
+  const lyricWidth = width * 0.84;
+  const layers = new Map();
 
   // Measure once so that the same lyric rows wrap and align in every exported frame.
   let nextTop = 0;
   const rows = lines.map(line => {
-    const block = measureLyric(context, line, job.mode, width * 0.84);
+    const block = measureLyric(context, line, job.mode, lyricWidth);
     const center = nextTop + (block.height * block.scale) / 2;
     nextTop += block.height * block.scale + ROW_GAP;
     return { ...block, center };
   });
-  const initialCenter = rows[0].center - 96;
+  const initial = { center: rows[0].center - 96, focus: -1 };
   const scrolls = [];
   for (const [index, line] of lines.entries()) {
     const start = line.startMs + offsetMs;
-    const from = index ? scrollPosition(scrolls[index - 1], start) : initialCenter;
-    scrolls.push({ start, from, to: rows[index].center });
+    const from = index ? scrollState(scrolls[index - 1], start) : initial;
+    const to = { center: rows[index].center, focus: index };
+    scrolls.push({ start, from, to });
   }
 
   return timeMs => {
     context.drawImage(backdrop, 0, 0);
     const active = activeLineIndex(lines, timeMs, offsetMs);
-    const center = active >= 0 ? scrollPosition(scrolls[active], timeMs) : initialCenter;
+    const { center, focus } = active >= 0 ? scrollState(scrolls[active], timeMs) : initial;
 
     context.save();
     context.beginPath();
     context.rect(0, top, width, bottom - top);
     context.clip();
 
+    let firstVisible = rows.length;
+    let lastVisible = -1;
     for (const [index, row] of rows.entries()) {
       const y = stageCenter + row.center - center;
-      const half = (row.height * row.scale) / 2;
+      const half = (row.height * row.scale) / 2 + LAYER_PADDING;
       if (y + half < top) continue;
       if (y - half > bottom) break;
 
-      const distance = Math.abs(y - stageCenter) / ((bottom - top) / 2);
-      const alpha = index === active ? 1 : Math.max(0.04, 0.48 * (1 - distance));
-      drawLyric(context, row, width / 2, y, alpha);
+      firstVisible = Math.min(firstVisible, index);
+      lastVisible = index;
+      let layer = layers.get(index);
+      if (!layer) {
+        layer = createLyricLayer(row, lyricWidth);
+        layers.set(index, layer);
+      }
+
+      const { opacity, blurPx } = emphasisAt(index, focus);
+      context.globalAlpha = opacity;
+      context.filter = blurPx > 0 ? `blur(${blurPx.toFixed(3)}px)` : 'none';
+      context.drawImage(layer, (width - layer.width) / 2, y - layer.height / 2);
     }
 
     context.restore();
+    for (const index of layers.keys()) {
+      if (index < firstVisible || index > lastVisible) layers.delete(index);
+    }
   };
 }
 
@@ -98,9 +116,28 @@ function createBackdrop(width, height, image, title, artist) {
   return canvas;
 }
 
-function scrollPosition({ start, from, to }, timeMs) {
-  const t = Math.max(0, Math.min(1, (timeMs - start) / SCROLL_MS));
-  return from + (to - from) * (1 - (1 - t) ** 3);
+function interpolate(from, to, progress) {
+  return from + (to - from) * progress;
+}
+
+function scrollState({ start, from, to }, timeMs) {
+  const t = Math.max(0, Math.min(1, (timeMs - start) / lyricTransitionMs));
+  const progress = 1 - (1 - t) ** 3;
+  return {
+    center: interpolate(from.center, to.center, progress),
+    focus: interpolate(from.focus, to.focus, progress),
+  };
+}
+
+function emphasisAt(index, focus) {
+  const before = Math.floor(focus);
+  const progress = focus - before;
+  const from = lyricEmphasis(Math.abs(index - before));
+  const to = lyricEmphasis(Math.abs(index - before - 1));
+  return {
+    opacity: interpolate(from.opacity, to.opacity, progress),
+    blurPx: interpolate(from.blurPx, to.blurPx, progress),
+  };
 }
 
 function measureLyric(ctx, line, mode, maxWidth) {
@@ -200,10 +237,14 @@ function textDirection(text) {
     : 'ltr';
 }
 
-function drawLyric(ctx, row, x, y, alpha) {
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.translate(x, y);
+function createLyricLayer(row, maxWidth) {
+  const width = Math.ceil(maxWidth * row.scale) + 2 * LAYER_PADDING;
+  const height = Math.ceil(row.height * row.scale) + 2 * LAYER_PADDING;
+  const layer = new OffscreenCanvas(width, height);
+  const ctx = layer.getContext('2d');
+  if (!ctx) throw new Error('无法创建歌词画布。');
+
+  ctx.translate(width / 2, height / 2);
   ctx.scale(row.scale, row.scale);
   ctx.textAlign = 'center';
   let top = -row.height / 2;
@@ -233,5 +274,5 @@ function drawLyric(ctx, row, x, y, alpha) {
     }
     top += entry.height;
   }
-  ctx.restore();
+  return layer;
 }

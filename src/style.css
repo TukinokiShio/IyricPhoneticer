@@ -90,6 +90,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   line-height: 1.2;
 }
 .identity h1 span { color: var(--text-secondary); font-weight: 560; }
+.app-version { color: var(--text-muted); font-size: .72rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 .brand-mark {
   display: inline-flex;
@@ -194,41 +195,42 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   margin-block: 0;
   padding: max(32px, 15vh) 0;
   list-style: none;
-  text-align: center;
 }
 .lyric-line {
-  position: relative;
-  display: grid;
-  justify-items: center;
-  gap: 5px;
   width: 100%;
   min-height: 64px;
-  padding: 12px clamp(12px, 2vw, 38px);
-  border: 1px solid transparent;
-  border-radius: 16px;
+  padding: 10px clamp(12px, 2vw, 38px);
+  border: 0;
+  border-radius: 8px;
   color: var(--text-secondary);
   background: transparent;
   cursor: pointer;
   overflow-wrap: anywhere;
-  text-align: center;
-  transition: color var(--transition), background-color var(--transition), border-color var(--transition);
+  text-align: left;
 }
-.lyric-line:hover { color: var(--text); background: #b9b2fe15; }
-.lyric-line[aria-current="true"] { color: var(--text); background: #b9b2fe15; border-color: #b9b2fe36; }
-.lyric-line[aria-current="true"]::before {
-  position: absolute;
-  inset: 19px auto 19px 0;
-  width: 3px;
-  border-radius: 2px;
-  background: var(--accent);
-  content: "";
+.lyric-content {
+  display: grid;
+  gap: 5px;
+  opacity: var(--lyric-opacity, 1);
+  filter: blur(var(--lyric-blur, 0px));
+  transition: opacity var(--lyric-transition-ms) cubic-bezier(.23, 1, .32, 1),
+              filter var(--lyric-transition-ms) cubic-bezier(.23, 1, .32, 1);
 }
-.lyric-original { font-size: clamp(1.35rem, 3.25vw, 2.6rem); font-weight: 610; line-height: 1.4; white-space: pre-wrap; }
-.lyric-line[aria-current="true"] .lyric-original { font-weight: 730; }
+.lyric-line[aria-current="true"] .lyric-content { color: #fff; }
+.lyric-line[aria-current="true"] .lyric-content :is(rt, .lyric-reading, .lyric-translation) { color: inherit; }
+.lyric-line:focus-visible .lyric-content { opacity: 1; filter: none; transition: none; }
+.lyric-original { font-size: clamp(1.35rem, 3.25vw, 2.3rem); font-weight: 620; line-height: 1.35; white-space: pre-wrap; }
 .lyric-original rt { color: var(--accent-strong); font-size: .47em; font-weight: 560; }
 .lyric-reading { color: var(--accent-strong); font-size: clamp(.83rem, 1.7vw, 1.12rem); }
-.lyric-translation { color: var(--text-secondary); font-size: clamp(.85rem, 1.65vw, 1.12rem); line-height: 1.55; white-space: pre-wrap; }
+.lyric-translation { color: var(--text-secondary); font-size: clamp(1rem, 2.25vw, 1.5rem); line-height: 1.4; white-space: pre-wrap; }
 .return-button { position: absolute; right: max(12px, 4vw); bottom: 12px; background: var(--surface); }
+
+@media (hover: hover) {
+  .lyric-line:hover:not(:focus-visible) .lyric-content {
+    opacity: max(.72, var(--lyric-opacity, 1));
+    filter: blur(0);
+  }
+}
 
 .player-deck {
   min-width: 0;
@@ -343,6 +345,6 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .button, .lyric-line { transition: none; }
+  .button, .lyric-content { transition: none; }
   .button:enabled:active, a.button:active, .stage-message { transform: none; }
 }
