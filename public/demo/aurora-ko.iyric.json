@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "song": { "title": "새벽의 끝", "artist": "IyricPhoneticer Demo", "durationMs": 14000 },
+  "language": "ko",
+  "translationLanguage": "zh-Hans",
+  "sources": [{ "kind": "original", "label": "项目原创多语言演示" }],
+  "lines": [
+    {
+      "startMs": 1050,
+      "segments": [{ "text": "새벽빛이 골목을 지나 조용한 창문마다 번져 간다" }],
+      "romanization": "saebyeokbichi golmogeul jina joyonghan changmunmada beonjyeo ganda",
+      "translation": "晨光穿过巷子，渐渐漫到每一扇安静的窗前。"
+    },
+    {
+      "startMs": 5500,
+      "segments": [{ "text": "작은 별 하나를 주머니에 넣는다" }],
+      "romanization": "jageun byeol hanareul jumeonie neonneunda",
+      "translation": "把一颗小星星放进口袋。"
+    },
+    {
+      "startMs": 9300,
+      "segments": [{ "text": "오늘은 먼 아침까지 걸어간다" }],
+      "romanization": "oneureun meon achimkkaji georeoganda",
+      "translation": "今天要一直走到远方的清晨。"
+    }
+  ]
+}

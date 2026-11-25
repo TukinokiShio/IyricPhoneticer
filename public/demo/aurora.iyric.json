@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "song": { "title": "夜明けの端", "artist": "IyricPhoneticer Demo", "durationMs": 14000 },
+  "language": "ja",
+  "translationLanguage": "zh-Hans",
+  "sources": [{ "kind": "original", "label": "项目原创演示歌词、译文与时间轴" }],
+  "lines": [
+    {
+      "startMs": 1050,
+      "segments": [
+        { "text": "夜明", "reading": "よあ" },
+        { "text": "けの" },
+        { "text": "空", "reading": "そら" },
+        { "text": "に、" },
+        { "text": "灯", "reading": "あか" },
+        { "text": "りがほどける" }
+      ],
+      "romanization": "yo a ke no so ra ni, a ka ri ga ho do ke ru",
+      "translation": "黎明的天空里，点点灯光渐渐消散。"
+    },
+    {
+      "startMs": 4200,
+      "segments": [
+        { "text": "眠", "reading": "ねむ" },
+        { "text": "った" },
+        { "text": "窓", "reading": "まど" },
+        { "text": "を、" },
+        { "text": "風", "reading": "かぜ" },
+        { "text": "がそっとたたく" }
+      ],
+      "romanization": "ne mu tta ma do o, ka ze ga so tto ta ta ku",
+      "translation": "风轻轻敲响沉睡的窗。"
+    },
+    {
+      "startMs": 7500,
+      "segments": [
+        { "text": "小", "reading": "ちい" },
+        { "text": "さな" },
+        { "text": "星", "reading": "ほし" },
+        { "text": "を、ポケットにしまう" }
+      ],
+      "romanization": "ti i sa na ho si o, po ke tto ni si ma u",
+      "translation": "把小小的星星收进口袋。"
+    },
+    {
+      "startMs": 10800,
+      "segments": [
+        { "text": "遠", "reading": "とお" },
+        { "text": "い" },
+        { "text": "朝", "reading": "あさ" },
+        { "text": "へ、" },
+        { "text": "足音", "reading": "あしおと" },
+        { "text": "を" },
+        { "text": "連", "reading": "つ" },
+        { "text": "れて" }
+      ],
+      "romanization": "to o i a sa e, a si o to o tu re te",
+      "translation": "带着脚步声，走向远处的清晨。"
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10131f">
+    <title>IyricPhoneticer</title>
+  </head>
+  <body>
+    <svg class="icons" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="i-open" viewBox="0 0 24 24"><path d="M3.5 7V5.5a1 1 0 0 1 1-1h5l2 2h7.8a1 1 0 0 1 1 1v2M3.5 7l-.7 12.4h17.6l1.2-9.4H6l-2.5 9.4"/></symbol>
+      <symbol id="i-lyrics" viewBox="0 0 24 24"><path d="M5 5h14v14H5zM8 9h8m-8 3.5h8m-8 3.5h4"/></symbol>
+      <symbol id="i-image" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 16l5-5 4 4 2.5-2.5L20 17"/><circle cx="15.5" cy="8.5" r="1"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 12 7-12 7z" fill="currentColor" stroke="none"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8.5 6v12m7-12v12" stroke-width="3"/></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/></symbol>
+      <symbol id="i-video" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/></symbol>
+      <symbol id="i-note" viewBox="0 0 24 24"><path d="M10 18V5l10-2v13M10 18c0 1.3-1.3 2.5-3 2.5S4 19.3 4 18s1.3-2.5 3-2.5 3 1.2 3 2.5Zm10-2c0 1.3-1.3 2.5-3 2.5S14 17.3 14 16s1.3-2.5 3-2.5 3 1.2 3 2.5Z"/></symbol>
+    </svg>
+
+    <div class="backdrop" aria-hidden="true">
+      <img id="song-background" alt="" hidden>
+    </div>
+
+    <main class="player-shell">
+      <header class="player-header">
+        <div class="identity">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <h1>Iyric<span>Phoneticer</span></h1>
+        </div>
+        <div class="file-actions" role="group" aria-label="文件">
+          <button class="button button-open" id="open-audio" type="button">
+            <svg aria-hidden="true"><use href="#i-open"/></svg> 打开音频
+          </button>
+          <button class="button button-secondary" id="open-lyrics" type="button" disabled>
+            <svg aria-hidden="true"><use href="#i-lyrics"/></svg> 导入歌词
+          </button>
+          <button class="button button-secondary" id="open-background" type="button" disabled>
+            <svg aria-hidden="true"><use href="#i-image"/></svg> 更换背景
+          </button>
+          <button class="button button-text" id="reset-background" type="button" hidden>恢复背景</button>
+        </div>
+        <input id="audio-file" type="file" accept="audio/*,.mp3,.wav,.ogg,.opus,.flac,.m4a,.aac,.webm" hidden>
+        <input id="lyrics-file" type="file" accept="application/json,.json" hidden>
+        <input id="background-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,.jpeg,.jpg,.png,.webp,.gif,.avif" hidden>
+      </header>
+
+      <section class="stage" aria-label="歌词">
+        <div class="stage-message" id="stage-message">
+          <span class="stage-symbol" aria-hidden="true"><svg><use href="#i-note"/></svg></span>
+          <h2 id="stage-title">打开一首歌</h2>
+          <p id="stage-description">导入歌词包，一起看原文、注音和译文。</p>
+          <button class="button button-text demo-button" id="try-demo" type="button">
+            <svg aria-hidden="true"><use href="#i-play"/></svg> 载入示例
+          </button>
+        </div>
+        <div class="lyrics-viewport" id="lyrics-viewport" hidden>
+          <ol class="lyrics-list" id="lyric-lines"></ol>
+        </div>
+        <button class="button button-secondary return-button" id="return-to-current" type="button" hidden>回到当前句</button>
+      </section>
+
+      <section class="player-deck" aria-label="播放与导出">
+        <div class="deck-core">
+          <div class="song-summary">
+            <span class="song-cover" aria-hidden="true">
+              <img id="song-cover" alt="" hidden>
+              <svg><use href="#i-note"/></svg>
+            </span>
+            <div class="song-text">
+              <h2 id="song-title">未打开音频</h2>
+              <p id="song-artist" hidden></p>
+            </div>
+          </div>
+          <div class="transport">
+            <button class="button play-button" id="play-toggle" type="button" aria-label="播放" disabled>
+              <svg aria-hidden="true"><use id="play-icon" href="#i-play"/></svg>
+            </button>
+            <div class="progress-cluster">
+              <input class="seek" id="progress" type="range" min="0" max="0" step="1" value="0" aria-label="播放进度" aria-valuetext="0:00 / 0:00" disabled>
+              <div class="time-labels" aria-hidden="true"><span id="current-time">0:00</span><span id="duration">0:00</span></div>
+            </div>
+          </div>
+          <div class="export-action">
+            <button class="button button-export" id="export-video" type="button" disabled>
+              <svg aria-hidden="true"><use href="#i-video"/></svg> 生成歌词视频
+            </button>
+            <button class="button button-text" id="export-cancel" type="button" hidden>取消生成</button>
+            <a class="button button-export" id="export-download" download hidden>
+              <svg aria-hidden="true"><use href="#i-download"/></svg> 下载视频
+            </a>
+          </div>
+        </div>
+
+        <div class="deck-settings">
+          <div class="mode-control" role="group" aria-label="注音显示">
+            <span class="setting-label" aria-hidden="true">注音</span>
+            <div class="segmented">
+              <button id="annotation-reading" class="button mode-button" type="button" aria-pressed="true" disabled>假名</button>
+              <button id="annotation-romaji" class="button mode-button" type="button" aria-pressed="false" disabled>罗马音</button>
+            </div>
+          </div>
+          <div class="offset-control" role="group" aria-label="歌词时间偏移">
+            <span class="setting-label" aria-hidden="true">歌词同步</span>
+            <button id="offset-advance" class="button offset-button" type="button" aria-label="歌词提前 0.5 秒" disabled>−0.5</button>
+            <button id="offset-reset" class="button offset-value" type="button" aria-label="重置歌词偏移，当前 0.0 秒" disabled><span id="offset-value">0.0 s</span></button>
+            <button id="offset-delay" class="button offset-button" type="button" aria-label="歌词延后 0.5 秒" disabled>+0.5</button>
+          </div>
+          <p id="status" class="status" role="status" aria-live="polite" hidden></p>
+          <div id="export-status" class="export-status" hidden>
+            <progress id="export-progress" aria-label="歌词视频生成进度" max="100" value="0"></progress>
+            <span id="export-percent">0%</span>
+          </div>
+        </div>
+      </section>
+      <audio id="player" preload="metadata"></audio>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
